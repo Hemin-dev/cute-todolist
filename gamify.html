@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Gamified Pomodoro</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fcf4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            gap: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .profile-header {
+            background-color: #ffe6f2;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .profile-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ffc0cb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-info h3 {
+            margin: 0;
+            color: #d81b60;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .profile-info p {
+            margin: 5px 0 0;
+            color: #ff69b4;
+            font-size: 0.9em;
+        }
+
+        .title-box {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #9c27b0;
+            margin: 0;
+            font-size: 2.2em;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        h2 {
+            color: #ff80ab;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.8em;
+        }
+
+        #task-section, #archive-section {
+            background-color: #fff;
+            border: 2px dashed #ffc0cb;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #archive-section {
+            border-style: solid;
+            border-color: #d3a9d3;
+            background-color: #f7e6f7;
+        }
+        #archive-section h2 {
+            color: #a052a0;
+        }
+
+        #time-section {
+            background-color: #fff;
+            border: 2px dashed #dda0dd;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #timer-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        #durationInput {
+            padding: 10px 15px;
+            border: 1px solid #ffc0cb;
+            border-radius: 8px;
+            font-size: 1em;
+            width: 100px;
+            text-align: center;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        #durationInput:focus {
+            outline: none;
+            border-color: #ff69b4;
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.2);
+        }
+
+        .timer-button {
+            padding: 12px 25px;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+        }
+
+        .timer-button:hover {
+            background-color: #ff1493;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .timer-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #circleTimerContainer {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background-color: #eee;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #555;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 5px solid #f0f0f0;
+            overflow: hidden;
+        }
+
+        #circleTimerContainer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(#ff80ab 0% 0%, transparent 0% 100%);
+            transform: rotate(-90deg);
+            transition: background 0.5s linear;
+        }
+
+        #timer {
+            position: relative;
+            z-index: 1;
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            #circleTimerContainer {
+                width: 140px;
+                height: 140px;
+                font-size: 2em;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        .input-area {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        #todoInput {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: 1px solid #ffc0cb;
+            border-radius: 8px 0 0 8px;
+            font-size: 1em;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        #todoInput:focus {
+            outline: none;
+            border-color: #ff69b4;
+            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.2);
+        }
+
+        #addItemBtn {
+            padding: 10px 15px;
+            background-color: #ff69b4;
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-weight: bold;
+        }
+
+        #addItemBtn:hover {
+            background-color: #ff1493;
+        }
+
+        #todoList, #archiveList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #todoList li, #archiveList li {
+            background-color: #fff0f5;
+            border: 1px solid #ffc0cb;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        #todoList li:hover {
+            background-color: #ffe6f2;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #todoList li.completed, #archiveList li {
+            text-decoration: line-through;
+            color: #b0a0b0;
+            background-color: #f5e0e8;
+            border-color: #e0d0d8;
+        }
+        #archiveList li {
+            cursor: default;
+        }
+
+        #todoList li::before, #archiveList li::before {
+            content: '';
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border: 2px solid #ff69b4;
+            border-radius: 5px;
+            margin-right: 12px;
+            background-color: white;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        #todoList li.completed::before, #archiveList li::before {
+            background-color: #ff69b4;
+            border-color: #ff69b4;
+            content: '✔';
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .congratulations-effect {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 105, 180, 0.9);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+            animation: pop-in 0.3s ease-out forwards, fade-out 1s ease-out 1.5s forwards;
+        }
+
+        @keyframes pop-in {
+            from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        @keyframes fade-out {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .footer-line {
+            margin-top: 30px;
+            color: #d81b60;
+            font-size: 0.9em;
+            text-align: center;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="profile-header">
+            <div class="profile-img">🌸</div>
+            <div class="profile-info">
+                <h3>Poco Loco</h3>
+                <p id="soulsKilledDisplay">Souls Killed: 💖 0</p>
+            </div>
+        </div>
+
+        <div class="title-box">
+            <h1>my gamified pomodoro</h1>
+        </div>
+
+        <div id="time-section">
+            <h2>pomodoro timer</h2>
+            <div id="circleTimerContainer">
+                <span id="timer">25:00</span>
+            </div>
+            <div id="timer-controls">
+                <input type="number" id="durationInput" value="25" min="1" max="180">
+                <button class="timer-button" id="toggleTimerBtn">Start</button>
+            </div>
+        </div>
+
+        <div id="task-section">
+            <h2>tasks</h2>
+            <div class="input-area">
+                <input type="text" id="todoInput" placeholder="Enter a new to-do item">
+                <button id="addItemBtn">Add Item</button>
+            </div>
+            <ul id="todoList"></ul>
+        </div>
+
+        <div id="archive-section">
+            <h2>archived tasks</h2>
+            <ul id="archiveList"></ul>
+        </div>
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+    <div id="congratulationsEffect" class="congratulations-effect">🎉 Task Completed! 🎉</div>
+
+    <div class="footer-line">Made with 🌹 for my dear sisters</div>
+
+    <script>
+        let seconds = 0;
+        let initialSeconds = 0;
+        let countdown;
+        let timerRunning = false;
+        let soulsKilled = 0;
+
+        const timerDisplay = document.getElementById("timer");
+        const messageBox = document.getElementById("messageBox");
+        const toggleTimerBtn = document.getElementById("toggleTimerBtn");
+        const durationInput = document.getElementById("durationInput");
+        const circleTimerContainer = document.getElementById("circleTimerContainer");
+        const soulsKilledDisplay = document.getElementById("soulsKilledDisplay");
+        const addItemBtn = document.getElementById('addItemBtn');
+        const todoInput = document.getElementById('todoInput');
+        const todoList = document.getElementById('todoList');
+        const archiveList = document.getElementById('archiveList');
+        const congratulationsEffect = document.getElementById('congratulationsEffect');
+
+        function showMessage(message, duration = 2000) {
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
+
+        function showCongratulations() {
+            congratulationsEffect.style.display = 'block';
+            setTimeout(() => {
+                congratulationsEffect.style.display = 'none';
+            }, 2500);
+        }
+
+        function updateTimerDisplay() {
+            let minutes = Math.floor(seconds / 60);
+            let remainingSeconds = seconds % 60;
+            timerDisplay.innerText = `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+
+            const percentage = (seconds / initialSeconds) * 100;
+            circleTimerContainer.style.backgroundImage = `conic-gradient(#ff80ab ${percentage}%, transparent ${percentage}% 100%)`;
+        }
+
+        function startTimer() {
+            clearInterval(countdown);
+            countdown = setInterval(() => {
+                seconds--;
+                if (seconds <= 0) {
+                    clearInterval(countdown);
+                    timerRunning = false;
+                    toggleTimerBtn.textContent = "Start";
+                    showMessage("Pomodoro complete!");
+                    seconds = initialSeconds;
+                    updateTimerDisplay();
+                    return;
+                }
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        toggleTimerBtn.addEventListener('click', () => {
+            if (timerRunning) {
+                clearInterval(countdown);
+                timerRunning = false;
+                toggleTimerBtn.textContent = "Resume";
+            } else {
+                if (seconds === 0 || seconds === initialSeconds) {
+                    const durationMinutes = parseInt(durationInput.value);
+                    if (isNaN(durationMinutes) || durationMinutes <= 0) {
+                        showMessage("Please enter a valid duration (minutes).");
+                        return;
+                    }
+                    initialSeconds = durationMinutes * 60;
+                    seconds = initialSeconds;
+                }
+                timerRunning = true;
+                toggleTimerBtn.textContent = "Stop";
+                startTimer();
+            }
+        });
+
+        function createTodoItem(itemName) {
+            const listItem = document.createElement('li');
+            listItem.textContent = itemName;
+            listItem.addEventListener('click', function() {
+                if (!listItem.classList.contains('completed')) {
+                    listItem.classList.add('completed');
+                    soulsKilled++;
+                    soulsKilledDisplay.textContent = `Souls Killed: 💖 ${soulsKilled}`;
+                    showCongratulations();
+                    setTimeout(() => {
+                        todoList.removeChild(listItem);
+                        archiveList.appendChild(listItem);
+                    }, 500);
+                }
+            });
+            return listItem;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            addItemBtn.addEventListener('click', () => {
+                const itemText = todoInput.value.trim();
+                if (itemText !== "") {
+                    const newItem = createTodoItem(itemText);
+                    todoList.appendChild(newItem);
+                    todoInput.value = '';
+                    todoInput.focus();
+                } else {
+                    showMessage("Please enter a to-do item!");
+                }
+            });
+
+            todoInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    addItemBtn.click();
+                }
+            });
+
+            durationInput.addEventListener('change', () => {
+                if (!timerRunning) {
+                    const durationMinutes = parseInt(durationInput.value);
+                    if (!isNaN(durationMinutes) && durationMinutes > 0) {
+                        initialSeconds = durationMinutes * 60;
+                        seconds = initialSeconds;
+                        updateTimerDisplay();
+                    }
+                }
+            });
+
+            initialSeconds = parseInt(durationInput.value) * 60;
+            seconds = initialSeconds;
+            updateTimerDisplay();
+        });
+    </script>
+</body>
+</html>
